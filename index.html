@@ -130,7 +130,6 @@
         setNewMessage("");
         setIsLoading(true);
 
-        // Fetch from Vercel serverless endpoint
         try {
           const response = await fetch(`/api/chat?message=${encodeURIComponent(trimmed)}`);
           const data = await response.json();
