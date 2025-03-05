@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CodeX AI (lite) - Your AI Coding Assistant by ZeQta</title>
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet" />
+    <style>
+      /* Global Reset and Theme Variables */
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body {
+        background: #0c0c0c;
+        color: #fff;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        line-height: 1.6;
+      }
+      :root {
+        --primary-bg: #0c0c0c;
+        --secondary-bg: #1a1a1a;
+        --accent-color: #9b59b6;
+        --text-primary: #ffffff;
+        --text-secondary: #dcdcdc;
+        --border-color: #292929;
+        --glow-color: rgba(155, 89, 182, 0.3);
+      }
+      header {
+        background: var(--secondary-bg);
+        padding: 20px 40px;
+        border-bottom: 1px solid var(--border-color);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      header .logo {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      header .logo svg {
+        width: 48px;
+        height: 48px;
+      }
+      header .logo span {
+        font-size: 24px;
+        font-weight: 700;
+        color: var(--accent-color);
+        text-shadow: 0 0 10px var(--glow-color);
+      }
+      .cta-btn {
+        padding: 10px 20px;
+        background: var(--accent-color);
+        color: var(--text-primary);
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        text-decoration: none;
+        transition: background 0.3s;
+      }
+      .cta-btn:hover {
+        background: #8e44ad;
+      }
+      section {
+        padding: 60px 20px;
+        text-align: center;
+      }
+      .hero {
+        background: var(--secondary-bg);
+        padding: 100px 20px;
+      }
+      .hero h1 {
+        font-size: 48px;
+        margin-bottom: 20px;
+      }
+      .hero p {
+        font-size: 20px;
+        max-width: 800px;
+        margin: 0 auto 30px;
+      }
+      .features, .tutorial {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 20px;
+      }
+      .feature, .tutorial-step {
+        background: var(--secondary-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 20px;
+        width: 300px;
+        text-align: center;
+      }
+      .feature i, .tutorial-step i {
+        font-size: 40px;
+        color: var(--accent-color);
+        margin-bottom: 10px;
+      }
+      .feature h3, .tutorial-step h3 {
+        margin-bottom: 10px;
+        font-size: 22px;
+      }
+      .tutorial-step p {
+        font-size: 16px;
+      }
+      .about {
+        max-width: 800px;
+        margin: 0 auto;
+      }
+      footer {
+        background: var(--secondary-bg);
+        padding: 20px;
+        text-align: center;
+        border-top: 1px solid var(--border-color);
+        font-size: 14px;
+        color: var(--text-secondary);
+      }
+      @media (max-width: 768px) {
+        .features, .tutorial {
+          flex-direction: column;
+          align-items: center;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="logo">
+        <svg class="logo-icon" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+              <feGaussianBlur stdDeviation="4" result="coloredBlur" />
+              <feMerge>
+                <feMergeNode in="coloredBlur" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+          </defs>
+          <circle cx="32" cy="32" r="28" fill="#9b59b6" filter="url(#glow)" />
+          <text x="32" y="42" font-size="28" text-anchor="middle" fill="#ffffff" font-family="Arial" font-weight="bold">CX</text>
+        </svg>
+        <span>CodeX AI (lite)</span>
+      </div>
+      <a class="cta-btn" href="codex.html">Try for Free</a>
+    </header>
+
+    <section class="hero" id="hero">
+      <h1>Welcome to CodeX AI (lite)</h1>
+      <p>
+        Your AI coding assistant that offers instant help, smart debugging, and contextual code suggestions.
+        Full version coming soon!
+      </p>
+      <a class="cta-btn" href="codex.html">Try for Free</a>
+    </section>
+
+    <section id="features">
+      <h2 style="color: var(--accent-color); margin-bottom: 40px;">Features</h2>
+      <div class="features">
+        <div class="feature">
+          <i class="ri-lightbulb-flash-line"></i>
+          <h3>Instant Assistance</h3>
+          <p>Receive immediate coding help and suggestions right when you need them.</p>
+        </div>
+        <div class="feature">
+          <i class="ri-settings-4-line"></i>
+          <h3>Smart Debugging</h3>
+          <p>Identify and fix bugs faster with our AI-powered debugging tools.</p>
+        </div>
+        <div class="feature">
+          <i class="ri-code-line"></i>
+          <h3>Contextual Insights</h3>
+          <p>Get code recommendations that understand the context of your project.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="how-it-works">
+      <h2 style="color: var(--accent-color); margin-bottom: 40px;">How It Works</h2>
+      <p style="max-width: 800px; margin: 0 auto 30px; font-size: 18px;">
+        CodeX AI (lite) harnesses the power of the OpenRouter API and the DeepSeek R1 free model to deliver cutting-edge coding assistance.
+        Follow these simple steps to get started:
+      </p>
+      <div class="tutorial">
+        <div class="tutorial-step">
+          <i class="ri-link-m"></i>
+          <h3>Step 1: Get Your API Key</h3>
+          <p>
+            Visit <a href="https://openrouter.ai" target="_blank" style="color: var(--accent-color); text-decoration: none;">openrouter.ai</a>
+            and generate your API key.
+          </p>
+        </div>
+        <div class="tutorial-step">
+          <i class="ri-key-line"></i>
+          <h3>Step 2: Paste Your API Key</h3>
+          <p>
+            Open the CodeX AI (lite) app and paste your API key in the designated field to unlock the service.
+          </p>
+        </div>
+        <div class="tutorial-step">
+          <i class="ri-question-answer-line"></i>
+          <h3>Step 3: Ask Your Coding Questions</h3>
+          <p>
+            Type your questions or code snippets into the app. Our AI analyzes your input and provides detailed, contextual responses.
+          </p>
+        </div>
+        <div class="tutorial-step">
+          <i class="ri-rocket-line"></i>
+          <h3>Step 4: Enjoy Seamless Assistance</h3>
+          <p>
+            Experience real-time coding support and smart debugging as you develop, all powered by advanced AI.
+          </p>
+        </div>
+      </div>
+      <p style="margin-top: 30px; font-size: 16px; color: var(--text-secondary);">
+        Disclaimer: We won't scam you. Our AI uses the DeepSeek R1 free model, which requires $0.000.
+      </p>
+    </section>
+
+    <section id="about">
+      <h2 style="color: var(--accent-color); margin-bottom: 40px;">About ZeQta</h2>
+      <div class="about">
+        <p style="font-size: 18px;">
+          ZeQta is a pioneering company specializing in AI tools and game development. We build innovative solutions that empower developers and transform industries.
+          Discover more about our work at 
+          <a href="https://zeqta.vercel.app" target="_blank" style="color: var(--accent-color); text-decoration: none;">zeqta.vercel.app</a>.
+        </p>
+      </div>
+    </section>
+
+    <footer>
+      <p>&copy; 2025 ZeQta. All rights reserved.</p>
+      <p>CodeX AI (lite) &mdash; Your future-proof AI coding assistant. Full version coming soon!</p>
+    </footer>
+  </body>
+</html>
