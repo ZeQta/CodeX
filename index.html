@@ -1,182 +1,943 @@
-<!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CodeX AI Assistant</title>
-  <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet" />
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
-    :root { --primary-bg: #0c0c0c; --secondary-bg: #1a1a1a; --accent-color: #9b59b6; --text-primary: #ffffff; --text-secondary: #dcdcdc; --border-color: #292929; --glow-color: rgba(155, 89, 182, 0.3); --message-hover: #2b2b2b; }
-    body { background: var(--primary-bg); color: var(--text-primary); height: 100vh; overflow: hidden; }
-    .app { height: 100vh; display: flex; flex-direction: column; }
-    .chat-header { height: 56px; padding: 0 24px; display: flex; align-items: center; border-bottom: 1px solid var(--border-color); background: var(--secondary-bg); }
-    .header-title { display: flex; align-items: center; gap: 12px; font-size: 18px; font-weight: 600; }
-    .logo-container { display: flex; align-items: center; gap: 12px; }
-    .logo-icon { width: 32px; height: 32px; }
-    .logo-text { font-weight: 700; color: var(--accent-color); }
-    .chat-messages { flex: 1; padding: 24px 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 24px; }
-    .message { display: flex; gap: 16px; padding: 4px 16px; }
-    .message-avatar { width: 32px; height: 32px; border-radius: 50%; margin-top: 4px; }
-    .message-content { flex: 1; }
-    .message-header { display: flex; align-items: baseline; gap: 12px; margin-bottom: 8px; }
-    .message-author { font-weight: 600; color: var(--accent-color); }
-    .message-time { color: var(--text-secondary); font-size: 12px; }
-    .message-text { color: var(--text-primary); line-height: 1.6; font-size: 15px; }
-    .chat-input { padding: 16px 24px 24px; display: flex; gap: 12px; background: var(--primary-bg); border-top: 1px solid var(--border-color); }
-    .chat-input textarea { flex: 1; padding: 14px 16px; background: var(--secondary-bg); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-primary); outline: none; resize: none; font-size: 15px; min-height: 56px; }
-    .upload-button { background: var(--accent-color); border: none; border-radius: 8px; color: var(--text-primary); width: 56px; height: 56px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
-    .upload-button:disabled { background: #5d3c6a; opacity: 0.7; }
-    .upload-button i { font-size: 20px; }
-    .loading-indicator { display: inline-block; width: 20px; height: 20px; border: 2px solid rgba(255, 255, 255, 0.3); border-radius: 50%; border-top-color: var(--text-primary); animation: spin 0.8s linear infinite; }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    .message.ai-message { background: var(--secondary-bg); border-radius: 8px; padding: 16px; border-left: 3px solid var(--accent-color); }
-  </style>
-  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-</head>
-<body>
-  <div id="root"></div>
-
-  <!-- ChatHeader Component -->
-  <script type="text/babel">
-    const { useState } = React;
-    function ChatHeader() {
-      return (
-        <div className="chat-header">
-          <div className="header-title">
-            <div className="logo-container">
-              <svg className="logo-icon" viewBox="0 0 64 64" width="48" height="48" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="32" cy="32" r="28" fill="#9b59b6" />
-                <text x="32" y="42" fontSize="28" textAnchor="middle" fill="#ffffff" fontFamily="Arial" fontWeight="bold">CX</text>
-              </svg>
-              <div className="logo-text">CodeX</div>
-            </div>
-            <span style={{ marginLeft: "8px" }}>AI Assistant</span>
-          </div>
-        </div>
-      );
-    }
-  </script>
-
-  <!-- Message Component -->
-  <script type="text/babel">
-    function Message({ message }) {
-      return (
-        <div className={`message ${message.isAi ? "ai-message" : ""}`}>
-          <img
-            className="message-avatar"
-            src={message.isAi ? "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PHBhdGggZD0iTTI2IDRINmEyIDIgMCAwMD0yIDJ2MjBhMiAyIDAgMDAyIDJoMjBhMiAyIDAgMDAyLTJWNmEyIDIgMCAwMC0yLTJ6TTEyIDIybC00LTQgNC00IDEuNSAxLjVMMTEgMTZsMi41IDIuNUwxMiAyMnptOCAwbC0xLjUtMS41TDIxIDE4bC0yLjUtMi41TDIwIDE0bDQgNC00IDR6bS03LjUtMTJoNWwtNSAxMGgtNWw1LTEweiIgZmlsbD0iIzAwYjBmZiIgLz48L3N2Zz4=" : "https://via.placeholder.com/32"}
-            alt={message.isAi ? "CodeX" : "User"}
-          />
-          <div className="message-content">
-            <div className="message-header">
-              <span className="message-author">{message.isAi ? "CodeX" : "User"}</span>
-              <span className="message-time">{new Date(message.created_at).toLocaleTimeString()}</span>
-            </div>
-            <div className="message-text">{message.content}</div>
-          </div>
-        </div>
-      );
-    }
-  </script>
-
-  <!-- ChatInput Component -->
-  <script type="text/babel">
-    function ChatInput({ newMessage, onMessageChange, onSubmit, isLoading }) {
-      return (
-        <form className="chat-input" onSubmit={onSubmit}>
-          <textarea
-            placeholder="Ask CodeX anything about coding..."
-            value={newMessage}
-            onChange={(e) => onMessageChange(e.target.value)}
-          ></textarea>
-          <button type="submit" className="upload-button" disabled={isLoading}>
-            {isLoading ? <div className="loading-indicator"></div> : <i className="ri-send-plane-fill"></i>}
-          </button>
-        </form>
-      );
-    }
-  </script>
-
-  <!-- App Component -->
-  <script type="text/babel">
-    const { useState, useEffect, useRef } = React;
-
-    function App() {
-      const [messages, setMessages] = useState([]);
-      const [newMessage, setNewMessage] = useState("");
-      const [isLoading, setIsLoading] = useState(false);
-      const messagesEndRef = useRef(null);
-
-      useEffect(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-      }, [messages]);
-
-      const handleSendMessage = async (e) => {
-        e.preventDefault();
-        const trimmed = newMessage.trim();
-        if (!trimmed) return;
-
-        const userMessage = {
-          id: Date.now(),
-          content: trimmed,
-          created_at: new Date().toISOString(),
-          isAi: false
-        };
-        const updatedMessages = [...messages, userMessage];
-        setMessages(updatedMessages);
-        setNewMessage("");
-        setIsLoading(true);
-
-        try {
-          const response = await fetch(`/api/chat?message=${encodeURIComponent(trimmed)}`);
-          const data = await response.json();
-          const aiMessage = {
-            id: Date.now() + 1,
-            content: data.content,
-            created_at: new Date().toISOString(),
-            isAi: true
-          };
-          setMessages([...updatedMessages, aiMessage]);
-        } catch (error) {
-          const aiMessage = {
-            id: Date.now() + 1,
-            content: "Error: Couldn’t connect to the AI service.",
-            created_at: new Date().toISOString(),
-            isAi: true
-          };
-          setMessages([...updatedMessages, aiMessage]);
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CodeX(lite) AI Assistant</title>
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet" />
+    <style>
+      /* All styles remain unchanged to preserve the original UI */
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      }
+      :root {
+        --primary-bg: #0c0c0c;
+        --secondary-bg: #1a1a1a;
+        --accent-color: #9b59b6;
+        --text-primary: #ffffff;
+        --text-secondary: #dcdcdc;
+        --border-color: #292929;
+        --glow-color: rgba(155, 89, 182, 0.3);
+        --message-hover: #2b2b2b;
+        --code-bg: #1e1e1e;
+        --logo-glow: 0 0 10px rgba(155, 89, 182, 0.7);
+      }
+      body {
+        background: var(--primary-bg);
+        color: var(--text-primary);
+        height: 100vh;
+        overflow: hidden;
+      }
+      .app {
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+      .chat-header {
+        height: 56px;
+        padding: 0 24px;
+        display: flex;
+        align-items: center;
+        border-bottom: 1px solid var(--border-color);
+        font-weight: 500;
+        background: var(--secondary-bg);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        justify-content: space-between;
+        position: relative;
+        z-index: 10;
+      }
+      .header-title {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 18px;
+        letter-spacing: 0.5px;
+        font-weight: 600;
+      }
+      .logo-container {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .logo-icon {
+        width: 32px;
+        height: 32px;
+        filter: drop-shadow(var(--logo-glow));
+      }
+      .logo-text {
+        font-weight: 700;
+        color: var(--accent-color);
+        text-shadow: 0 0 10px var(--glow-color);
+        letter-spacing: 0.8px;
+      }
+      .chat-messages {
+        flex: 1;
+        padding: 24px 16px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+        min-height: 0;
+        max-height: calc(100vh - 120px);
+        scroll-behavior: smooth;
+      }
+      .message {
+        display: flex;
+        gap: 16px;
+        padding: 4px 16px;
+        border-radius: 8px;
+        transition: background-color 0.2s ease;
+      }
+      .message:hover {
+        background-color: var(--message-hover);
+      }
+      .message-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        margin-top: 4px;
+      }
+      .message-content {
+        flex: 1;
+        max-width: 100%;
+        overflow-wrap: break-word;
+      }
+      .message-header {
+        display: flex;
+        align-items: baseline;
+        gap: 12px;
+        margin-bottom: 8px;
+      }
+      .message-author {
+        font-weight: 600;
+        color: var(--accent-color);
+      }
+      .message-time {
+        color: var(--text-secondary);
+        font-size: 12px;
+      }
+      .message-text {
+        color: var(--text-primary);
+        line-height: 1.6;
+        font-size: 15px;
+        letter-spacing: 0.2px;
+        width: 100%;
+        overflow-wrap: break-word;
+      }
+      .chat-input {
+        padding: 16px 24px 24px;
+        display: flex;
+        gap: 12px;
+        background: var(--primary-bg);
+        border-top: 1px solid var(--border-color);
+      }
+      .chat-input textarea {
+        flex: 1;
+        width: 100%;
+        padding: 14px 16px;
+        background: var(--secondary-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        color: var(--text-primary);
+        outline: none;
+        resize: none;
+        font-size: 15px;
+        transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        min-height: 56px;
+        max-height: 150px;
+      }
+      .chat-input textarea:focus {
+        border-color: var(--accent-color);
+        box-shadow: 0 0 0 2px var(--glow-color);
+      }
+      .chat-input textarea::placeholder {
+        color: var(--text-secondary);
+      }
+      .upload-button {
+        background: var(--accent-color);
+        border: none;
+        border-radius: 8px;
+        color: var(--text-primary);
+        width: 56px;
+        height: 56px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+      .upload-button:hover {
+        background: #8e44ad;
+        transform: translateY(-2px);
+      }
+      .upload-button:disabled {
+        background: #5d3c6a;
+        cursor: not-allowed;
+        opacity: 0.7;
+      }
+      .upload-button i {
+        font-size: 20px;
+      }
+      .loading-indicator {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        border-top-color: var(--text-primary);
+        animation: spin 0.8s linear infinite;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
         }
-        setIsLoading(false);
-      };
+      }
+      @keyframes glow {
+        0% {
+          color: var(--text-secondary);
+          text-shadow: none;
+        }
+        50% {
+          color: var(--accent-color);
+          text-shadow: 0 0 8px var(--glow-color);
+        }
+        100% {
+          color: var(--text-secondary);
+          text-shadow: none;
+        }
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .message.ai-message {
+        background: var(--secondary-bg);
+        border-radius: 8px;
+        padding: 16px;
+        border-left: 3px solid var(--accent-color);
+        animation: fadeIn 0.3s ease-out;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      }
+      .ai-message .message-text {
+        padding: 4px 0;
+      }
+      .code-block {
+        background: var(--code-bg);
+        border-radius: 8px;
+        padding: 20px;
+        margin: 12px 0;
+        position: relative;
+        font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+        line-height: 1.5;
+        overflow-x: auto;
+        max-width: 100%;
+      }
+      .code-block pre {
+        margin: 0;
+        white-space: pre-wrap;
+        font-size: 14px;
+      }
+      .code-block code {
+        display: block;
+        overflow-x: auto;
+        padding: 8px 0;
+      }
+      .text-content {
+        margin: 8px 0;
+        width: 100%;
+        overflow-wrap: break-word;
+      }
+      .text-line {
+        margin: 8px 0;
+        line-height: 1.6;
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+      .text-content + .code-block,
+      .code-block + .text-content {
+        margin-top: 16px;
+      }
+      .copy-button {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        background: rgba(255, 255, 255, 0.1);
+        border: none;
+        color: var(--text-primary);
+        padding: 4px 8px;
+        border-radius: 4px;
+        cursor: pointer;
+        opacity: 0.8;
+        transition: opacity 0.2s, background-color 0.2s;
+      }
+      .copy-button:hover {
+        opacity: 1;
+        background: rgba(255, 255, 255, 0.2);
+      }
+      .language-tag {
+        position: absolute;
+        top: 8px;
+        left: 8px;
+        background: var(--accent-color);
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-size: 12px;
+        opacity: 0.9;
+      }
+      .chain-of-thought {
+        background: rgba(0, 0, 0, 0.2);
+        border-radius: 8px;
+        padding: 12px 16px;
+        margin-top: 12px;
+        color: var(--text-secondary);
+        font-family: 'Courier New', Courier, monospace;
+        font-size: 14px;
+        white-space: pre-wrap;
+        word-break: break-word;
+        border-left: 2px solid var(--accent-color);
+        max-height: 200px;
+        overflow-y: auto;
+        transition: max-height 0.3s ease;
+      }
+      .chain-of-thought:hover {
+        max-height: 500px!important;
+      }
+      .chain-of-thought.glowing .chain-header,
+      .chain-of-thought.glowing pre {
+        animation: glow 2s infinite;
+      }
+      .chain-of-thought .chain-header {
+        font-weight: bold;
+        margin-bottom: 8px;
+        color: var(--accent-color);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .chain-of-thought .chain-header::before {
+        content: '';
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        background-color: var(--accent-color);
+        border-radius: 50%;
+        animation: glow 2s infinite;
+      }
+      .copy-toast {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: var(--accent-color);
+        color: white;
+        padding: 8px 16px;
+        border-radius: 4px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        animation: fadeInOut 2s ease-in-out;
+        z-index: 1000;
+      }
+      @keyframes fadeInOut {
+        0% {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        15% {
+          opacity: 1;
+          transform: translateY(0);
+        }
+        85% {
+          opacity: 1;
+          transform: translateY(0);
+        }
+        100% {
+          opacity: 0;
+          transform: translateY(-20px);
+        }
+      }
+      .header-actions {
+        display: flex;
+        gap: 8px;
+      }
+      .header-button {
+        background: transparent;
+        border: none;
+        color: var(--text-primary);
+        border-radius: 4px;
+        width: 36px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: background-color 0.2s;
+      }
+      .header-button:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+      }
+      .conversations-dropdown {
+        position: absolute;
+        top: 56px;
+        right: 0;
+        width: 300px;
+        background: var(--secondary-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        z-index: 100;
+        overflow: hidden;
+        animation: fadeIn 0.2s ease-out;
+      }
+      .dropdown-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 16px;
+        border-bottom: 1px solid var(--border-color);
+      }
+      .dropdown-header h3 {
+        margin: 0;
+        font-size: 16px;
+        font-weight: 600;
+      }
+      .close-button {
+        background: transparent;
+        border: none;
+        color: var(--text-secondary);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 4px;
+        border-radius: 4px;
+      }
+      .close-button:hover {
+        color: var(--text-primary);
+        background-color: rgba(255, 255, 255, 0.1);
+      }
+      .conversations-list {
+        max-height: 400px;
+        overflow-y: auto;
+      }
+      .empty-state {
+        padding: 24px 16px;
+        text-align: center;
+        color: var(--text-secondary);
+      }
+      .conversation-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 16px;
+        border-bottom: 1px solid var(--border-color);
+        cursor: pointer;
+        transition: background-color 0.2s;
+      }
+      .conversation-item:hover {
+        background-color: var(--message-hover);
+      }
+      .conversation-item.active {
+        background-color: rgba(155, 89, 182, 0.15);
+        border-left: 3px solid var(--accent-color);
+      }
+      .conversation-title {
+        font-size: 14px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 200px;
+      }
+      .conversation-actions {
+        opacity: 0;
+        transition: opacity 0.2s;
+      }
+      .conversation-item:hover .conversation-actions {
+        opacity: 1;
+      }
+      .delete-button {
+        background: transparent;
+        border: none;
+        color: var(--text-secondary);
+        cursor: pointer;
+        padding: 4px;
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .delete-button:hover {
+        color: #ff4d4f;
+        background-color: rgba(255, 77, 79, 0.1);
+      }
+    </style>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="text/babel">
+      // Modified WebsimSocket stub to use user's name
+      class WebsimSocket {
+        constructor(username) {
+          this.party = { client: { username: username || "Guest" } };
+        }
+      }
+    </script>
+    <script type="text/babel">
+      // ChatHeader.js - unchanged except AI name update
+      const { useState } = React;
+      function ChatHeader({ onNewChat, currentConversationId, conversations, onSelectConversation, onDeleteConversation }) {
+        const [showConversations, setShowConversations] = useState(false);
+        return (
+          <div className="chat-header">
+            <div className="header-title">
+              <div className="logo-container">
+                <svg className="logo-icon" viewBox="0 0 64 64" width="48" height="48" xmlns="http://www.w3.org/2000/svg">
+                  <defs>
+                    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+                      <feGaussianBlur stdDeviation="4" result="coloredBlur" />
+                      <feMerge>
+                        <feMergeNode in="coloredBlur" />
+                        <feMergeNode in="SourceGraphic" />
+                      </feMerge>
+                    </filter>
+                  </defs>
+                  <circle cx="32" cy="32" r="28" fill="#9b59b6" filter="url(#glow)" />
+                  <text x="32" y="42" fontSize="28" textAnchor="middle" fill="#ffffff" fontFamily="Arial" fontWeight="bold">CX</text>
+                </svg>
+                <div className="logo-text">CodeX(lite)</div>
+              </div>
+              <span style={{ marginLeft: "8px" }}>AI Assistant</span>
+            </div>
+            <div className="header-actions">
+              <button
+                className="header-button"
+                onClick={() => setShowConversations(!showConversations)}
+                title="Conversation History"
+              >
+                <i className="ri-history-line"></i>
+              </button>
+              <button className="header-button" onClick={onNewChat} title="New Chat">
+                <i className="ri-add-line"></i>
+              </button>
+              {showConversations && (
+                <div className="conversations-dropdown">
+                  <div className="dropdown-header">
+                    <h3>Conversations</h3>
+                    <button className="close-button" onClick={() => setShowConversations(false)}>
+                      <i className="ri-close-line"></i>
+                    </button>
+                  </div>
+                  <div className="conversations-list">
+                    {Object.keys(conversations).length === 0 ? (
+                      <div className="empty-state">No conversations yet</div>
+                    ) : (
+                      Object.entries(conversations).map(([id, convo]) => (
+                        <div
+                          key={id}
+                          className={`conversation-item ${id === currentConversationId ? "active" : ""}`}
+                          onClick={() => {
+                            onSelectConversation(id);
+                            setShowConversations(false);
+                          }}
+                        >
+                          <div className="conversation-title">{convo.title || `Conversation ${id.slice(0, 8)}`}</div>
+                          <div className="conversation-actions">
+                            <button
+                              className="delete-button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onDeleteConversation(id);
+                              }}
+                              title="Delete conversation"
+                            >
+                              <i className="ri-delete-bin-line"></i>
+                            </button>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      }
+    </script>
+    <script type="text/babel">
+      // Message.js - unchanged
+      function Message({ message }) {
+        const copyToClipboard = (code) => {
+          navigator.clipboard.writeText(code);
+          const toast = document.createElement("div");
+          toast.className = "copy-toast";
+          toast.innerText = "Copied to clipboard!";
+          document.body.appendChild(toast);
+          setTimeout(() => document.body.removeChild(toast), 2000);
+        };
+        const formatMessage = (content) => {
+          if (!content) return null;
+          const parts = content.split(/(```[\s\S]*?```)/g);
+          return parts.map((part, index) => {
+            if (part.startsWith("```")) {
+              const match = part.match(/```(\w+)?\n([\s\S]*?)```/);
+              if (!match) return part;
+              const [, language, code] = match;
+              const formattedCode = code.trim().split("\n").map((line) => line.trimEnd()).join("\n");
+              return (
+                <div key={index} className="code-block">
+                  {language && <span className="language-tag">{language}</span>}
+                  <button className="copy-button" onClick={() => copyToClipboard(formattedCode)} title="Copy code">
+                    <i className="ri-file-copy-line"></i>
+                  </button>
+                  <pre>
+                    <code>{formattedCode}</code>
+                  </pre>
+                </div>
+              );
+            }
+            return (
+              <div key={index} className="text-content">
+                {part.split("\n").map((line, i) => (
+                  <p key={i} className="text-line">
+                    {line}
+                  </p>
+                ))}
+              </div>
+            );
+          });
+        };
+        return (
+          <div className={`message ${message.isAi ? "ai-message" : ""}`}>
+            <img
+              className="message-avatar"
+              src={
+                message.isAi
+                  ? "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJsb2dvR3JhZGllbnQiIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMTAwJSIgeTI9IjEwMCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiMwMDc4ZDQiIC8+PHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjMDBiMGZmIiAvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPjxwYXRoIGQ9Ik0yNiA0SDZhMiAyIDAgMDAtMiAydjIwYTIgMiAwIDAwMiAyaDIwYTIgMiAwIDAwMi0yVjZhMiAyIDAgMDAtMi0yek0xMiAyMmwtNC00IDQtNCAxLjUgMS41TDExIDE4bDIuNSAyLjVMMTIgMjJ6bTggMGwtMS41LTEuNUwyMSAxOGwtMi41LTIuNUwyMCAxNGw0IDQtNCA0em0tNy41LTEyaDVsLTUgMTBoLTVsNS0xMHoiIGZpbGw9InVybCgjbG9nb0dyYWRpZW50KSIgLz48L3N2Zz4="
+                  : `https://images.websim.ai/avatar/${message.username}`
+              }
+              alt={message.isAi ? "CodeX(lite)" : message.username}
+            />
+            <div className="message-content">
+              <div className="message-header">
+                <span className="message-author">{message.isAi ? "CodeX(lite)" : message.username}</span>
+                <span className="message-time">{new Date(message.created_at).toLocaleTimeString()}</span>
+              </div>
+              <div className="message-text">{formatMessage(message.content)}</div>
+              {message.isAi && message.chainOfThought && (
+                <div className={`chain-of-thought ${message.isPlaceholder ? "glowing" : ""}`}>
+                  <div className="chain-header">Chain of Thought</div>
+                  <pre>{message.chainOfThought}</pre>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      }
+    </script>
+    <script type="text/babel">
+      // ChatInput.js - unchanged
+      function ChatInput({ newMessage, onMessageChange, onSubmit, isLoading }) {
+        const adjustTextareaHeight = (e) => {
+          const textarea = e.target;
+          textarea.style.height = "auto";
+          textarea.style.height = Math.min(textarea.scrollHeight, 150) + "px";
+          onMessageChange(textarea.value);
+        };
+        return (
+          <form className="chat-input" onSubmit={onSubmit}>
+            <textarea
+              placeholder="Ask CodeX(lite) anything about coding..."
+              value={newMessage}
+              onChange={adjustTextareaHeight}
+              style={{ height: newMessage ? "auto" : "56px" }}
+            ></textarea>
+            <button type="submit" className="upload-button" disabled={isLoading}>
+              {isLoading ? <div className="loading-indicator"></div> : <i className="ri-send-plane-fill"></i>}
+            </button>
+          </form>
+        );
+      }
+    </script>
+    <script type="text/babel">
+      // app.js - Updated with API key input and customization
+      const { useState, useEffect, useRef } = React;
+      const API_URL = "https://openrouter.ai/api/v1/chat/completions";
 
-      return (
-        <div className="app">
-          <ChatHeader />
-          <div className="chat-messages">
-            {messages.map((message) => (
-              <Message key={message.id} message={message} />
-            ))}
-            {isLoading && (
-              <div className="message ai-message">
-                <div className="loading-indicator"></div>
+      function App() {
+        // Prompt for username on first load
+        const storedUsername = localStorage.getItem("codex-username");
+        const username = storedUsername || prompt("Welcome to CodeX(lite)! Please enter your name:", "Guest") || "Guest";
+        if (!storedUsername) {
+          localStorage.setItem("codex-username", username);
+        }
+        const room = new WebsimSocket(username);
+
+        const [messages, setMessages] = useState([]);
+        const [newMessage, setNewMessage] = useState("");
+        const [isLoading, setIsLoading] = useState(false);
+        const [conversations, setConversations] = useState({});
+        const [currentConversationId, setCurrentConversationId] = useState(null);
+        const [apiKey, setApiKey] = useState(localStorage.getItem("openrouter-api-key") || "");
+        const [apiKeyInput, setApiKeyInput] = useState("");
+        const messagesEndRef = useRef(null);
+
+        // Load conversations from localStorage on mount
+        useEffect(() => {
+          const savedConversations = localStorage.getItem("codex-conversations");
+          if (savedConversations) {
+            setConversations(JSON.parse(savedConversations));
+          }
+          const lastConversationId = localStorage.getItem("codex-last-conversation");
+          if (lastConversationId && savedConversations && JSON.parse(savedConversations)[lastConversationId]) {
+            setCurrentConversationId(lastConversationId);
+            setMessages(JSON.parse(savedConversations)[lastConversationId].messages || []);
+          } else {
+            createNewConversation();
+          }
+        }, []);
+
+        // Save conversations to localStorage when they change
+        useEffect(() => {
+          if (Object.keys(conversations).length > 0) {
+            localStorage.setItem("codex-conversations", JSON.stringify(conversations));
+          }
+          if (currentConversationId) {
+            localStorage.setItem("codex-last-conversation", currentConversationId);
+          }
+        }, [conversations, currentConversationId]);
+
+        // Auto-scroll to the latest message
+        useEffect(() => {
+          messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+        }, [messages]);
+
+        // Create a new conversation
+        const createNewConversation = () => {
+          const newId = Date.now().toString();
+          setConversations((prev) => ({
+            ...prev,
+            [newId]: {
+              title: "New Chat",
+              messages: []
+            }
+          }));
+          setCurrentConversationId(newId);
+          setMessages([]);
+        };
+
+        // Switch to an existing conversation
+        const selectConversation = (id) => {
+          setCurrentConversationId(id);
+          setMessages(conversations[id].messages || []);
+        };
+
+        // Delete a conversation
+        const deleteConversation = (id) => {
+          setConversations((prev) => {
+            const newConversations = { ...prev };
+            delete newConversations[id];
+            if (id === currentConversationId) {
+              const remainingIds = Object.keys(newConversations);
+              if (remainingIds.length > 0) {
+                selectConversation(remainingIds[0]);
+              } else {
+                createNewConversation();
+              }
+            }
+            return newConversations;
+          });
+        };
+
+        // Update the current conversation with new messages
+        const updateCurrentConversation = (newMessages) => {
+          setConversations((prev) => {
+            const userMessages = newMessages.filter((m) => !m.isAi);
+            const title =
+              userMessages.length > 0
+                ? userMessages[0].content.slice(0, 30) + (userMessages[0].content.length > 30 ? "..." : "")
+                : "New Chat";
+            return {
+              ...prev,
+              [currentConversationId]: {
+                ...prev[currentConversationId],
+                title,
+                messages: newMessages
+              }
+            };
+          });
+        };
+
+        // Generate AI response (original non-streaming version)
+        const generateAIResponse = async (conversationHistory) => {
+          try {
+            const messageHistory = [
+              {
+                role: "system",
+                content:
+                  "You are CodeX(lite), an AI coding assistant specialized in coding. Provide clear, detailed final answers based on the full conversation context. You can chat naturally and serve as a personal coding assistant. Organize your responses clearly and highlight main points."
+              },
+              ...conversationHistory.map((msg) => ({
+                role: msg.isAi ? "assistant" : "user",
+                content: msg.content
+              }))
+            ];
+            const response = await fetch(API_URL, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${apiKey}`
+              },
+              body: JSON.stringify({
+                model: "deepseek/deepseek-r1:free",
+                messages: messageHistory
+              })
+            });
+            const data = await response.json();
+            const messageData = data.choices[0].message;
+            const chain = messageData.chain_of_thought || messageData.chainOfThought || "";
+            return { content: messageData.content, chainOfThought: chain };
+          } catch (error) {
+            console.error("Error generating AI response:", error);
+            return { content: "Sorry, I encountered an error while processing your request.", chainOfThought: "" };
+          }
+        };
+
+        // Handle sending a new message (original version)
+        const handleSendMessage = async (e) => {
+          e.preventDefault();
+          if (!apiKey) {
+            alert("Please enter your OpenRouter API key before sending messages.");
+            return;
+          }
+          const trimmed = newMessage.trim();
+          if (!trimmed) return;
+          const userMessage = {
+            id: Date.now(),
+            content: trimmed,
+            username: room.party.client.username,
+            created_at: new Date().toISOString(),
+            isAi: false
+          };
+          const updatedMessages = [...messages, userMessage];
+          setMessages(updatedMessages);
+          updateCurrentConversation(updatedMessages);
+          setNewMessage("");
+          const placeholderId = Date.now() + 1;
+          const placeholderMessage = {
+            id: placeholderId,
+            content: "",
+            chainOfThought: "Complex tasks take time...",
+            isAi: true,
+            isPlaceholder: true,
+            created_at: new Date().toISOString()
+          };
+          const withPlaceholder = [...updatedMessages, placeholderMessage];
+          setMessages(withPlaceholder);
+          setIsLoading(true);
+          const quotes = [
+            "Analyzing your code...",
+            "Exploring solutions...",
+            "Processing your request...",
+            "Almost there...",
+            "Generating optimal code...",
+            "Building the perfect response...",
+            "Thinking through the problem..."
+          ];
+          const placeholderInterval = setInterval(() => {
+            const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
+            setMessages((prev) =>
+              prev.map((m) => (m.id === placeholderId ? { ...m, chainOfThought: randomQuote } : m))
+            );
+          }, 2000);
+          const aiResponse = await generateAIResponse(updatedMessages);
+          clearInterval(placeholderInterval);
+          const finalMessages = withPlaceholder.map((m) => {
+            if (m.id === placeholderId) {
+              return {
+                ...m,
+                content: aiResponse.content,
+                chainOfThought: aiResponse.chainOfThought,
+                isPlaceholder: false,
+                created_at: new Date().toISOString()
+              };
+            }
+            return m;
+          });
+          setMessages(finalMessages);
+          updateCurrentConversation(finalMessages);
+          setIsLoading(false);
+        };
+
+        const handleSaveApiKey = () => {
+          if (apiKeyInput.trim() !== "") {
+            setApiKey(apiKeyInput.trim());
+            localStorage.setItem("openrouter-api-key", apiKeyInput.trim());
+            setApiKeyInput("");
+          } else {
+            alert("Please enter a valid API key.");
+          }
+        };
+
+        return (
+          <div className="app">
+            <ChatHeader
+              onNewChat={createNewConversation}
+              currentConversationId={currentConversationId}
+              conversations={conversations}
+              onSelectConversation={selectConversation}
+              onDeleteConversation={deleteConversation}
+            />
+            {!apiKey && (
+              <div style={{ padding: "16px", background: "var(--secondary-bg)", borderBottom: "1px solid var(--border-color)" }}>
+                <p>
+                  Please enter your OpenRouter API key to start using CodeX(lite). If you don't have one, click 
+                  <a href="https://openrouter.ai" target="_blank" style={{ color: "var(--accent-color)" }}> here</a> to create one.
+                </p>
+                <input
+                  type="text"
+                  placeholder="Paste your OpenRouter API key here"
+                  value={apiKeyInput}
+                  onChange={(e) => setApiKeyInput(e.target.value)}
+                  style={{ width: "80%", padding: "8px", borderRadius: "4px", border: "1px solid var(--border-color)", marginRight: "8px" }}
+                />
+                <button onClick={handleSaveApiKey} style={{ padding: "8px 16px", borderRadius: "4px", background: "var(--accent-color)", border: "none", color: "var(--text-primary)" }}>
+                  Save API Key
+                </button>
+                <p style={{ fontSize: "12px", marginTop: "8px", color: "var(--text-secondary)" }}>
+                  Disclaimer: We won't scam you and the AI uses DeepSeek R1 free that requires $0.000.
+                </p>
               </div>
             )}
-            <div ref={messagesEndRef} />
+            <div className="chat-messages">
+              {messages.map((message) => (
+                <Message key={message.id} message={message} />
+              ))}
+              {isLoading && (
+                <div className="message ai-message">
+                  <div className="loading-indicator"></div>
+                </div>
+              )}
+              <div ref={messagesEndRef} />
+            </div>
+            <ChatInput
+              newMessage={newMessage}
+              onMessageChange={setNewMessage}
+              onSubmit={handleSendMessage}
+              isLoading={isLoading}
+            />
           </div>
-          <ChatInput
-            newMessage={newMessage}
-            onMessageChange={setNewMessage}
-            onSubmit={handleSendMessage}
-            isLoading={isLoading}
-          />
-        </div>
-      );
-    }
-
-    ReactDOM.createRoot(document.getElementById("root")).render(<App />);
-  </script>
-</body>
+        );
+      }
+      ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+    </script>
+  </body>
 </html>
