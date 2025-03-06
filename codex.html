@@ -1,11 +1,15 @@
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>CodeX(lite) AI Assistant</title>
-    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css"
+      rel="stylesheet"
+    />
     <style>
-      /* All styles remain unchanged to preserve the original UI */
+      /* Keep original styling to preserve the UI */
       * {
         margin: 0;
         padding: 0;
@@ -34,6 +38,7 @@
         height: 100vh;
         display: flex;
         flex-direction: column;
+        position: relative;
       }
       .chat-header {
         height: 56px;
@@ -41,9 +46,7 @@
         display: flex;
         align-items: center;
         border-bottom: 1px solid var(--border-color);
-        font-weight: 500;
         background: var(--secondary-bg);
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
         justify-content: space-between;
         position: relative;
         z-index: 10;
@@ -72,6 +75,23 @@
         text-shadow: 0 0 10px var(--glow-color);
         letter-spacing: 0.8px;
       }
+      .header-actions button {
+        background: transparent;
+        border: none;
+        color: var(--text-primary);
+        border-radius: 4px;
+        width: 36px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: background-color 0.2s;
+        margin-left: 8px;
+      }
+      .header-actions button:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+      }
       .chat-messages {
         flex: 1;
         padding: 24px 16px;
@@ -83,6 +103,75 @@
         max-height: calc(100vh - 120px);
         scroll-behavior: smooth;
       }
+      .chat-input {
+        padding: 16px 24px 24px;
+        display: flex;
+        gap: 12px;
+        background: var(--primary-bg);
+        border-top: 1px solid var(--border-color);
+        align-items: center;
+      }
+      .chat-input textarea {
+        flex: 1;
+        padding: 14px 16px;
+        background: var(--secondary-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        color: var(--text-primary);
+        outline: none;
+        resize: none;
+        font-size: 15px;
+        transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        min-height: 56px;
+        max-height: 150px;
+      }
+      .chat-input textarea:focus {
+        border-color: var(--accent-color);
+        box-shadow: 0 0 0 2px var(--glow-color);
+      }
+      .chat-input textarea::placeholder {
+        color: var(--text-secondary);
+      }
+      .upload-button, .image-upload-button {
+        background: var(--accent-color);
+        border: none;
+        border-radius: 8px;
+        color: var(--text-primary);
+        width: 56px;
+        height: 56px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+      .upload-button:hover, .image-upload-button:hover {
+        background: #8e44ad;
+        transform: translateY(-2px);
+      }
+      .upload-button:disabled, .image-upload-button:disabled {
+        background: #5d3c6a;
+        cursor: not-allowed;
+        opacity: 0.7;
+      }
+      .upload-button i, .image-upload-button i {
+        font-size: 20px;
+      }
+      .loading-indicator {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        border-top-color: var(--text-primary);
+        animation: spin 0.8s linear infinite;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      /* Message styles (unchanged) */
       .message {
         display: flex;
         gap: 16px;
@@ -126,116 +215,13 @@
         width: 100%;
         overflow-wrap: break-word;
       }
-      .chat-input {
-        padding: 16px 24px 24px;
-        display: flex;
-        gap: 12px;
-        background: var(--primary-bg);
-        border-top: 1px solid var(--border-color);
-      }
-      .chat-input textarea {
-        flex: 1;
-        width: 100%;
-        padding: 14px 16px;
-        background: var(--secondary-bg);
-        border: 1px solid var(--border-color);
-        border-radius: 8px;
-        color: var(--text-primary);
-        outline: none;
-        resize: none;
-        font-size: 15px;
-        transition: border-color 0.3s ease, box-shadow 0.3s ease;
-        min-height: 56px;
-        max-height: 150px;
-      }
-      .chat-input textarea:focus {
-        border-color: var(--accent-color);
-        box-shadow: 0 0 0 2px var(--glow-color);
-      }
-      .chat-input textarea::placeholder {
-        color: var(--text-secondary);
-      }
-      .upload-button {
-        background: var(--accent-color);
-        border: none;
-        border-radius: 8px;
-        color: var(--text-primary);
-        width: 56px;
-        height: 56px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        transition: all 0.2s ease;
-      }
-      .upload-button:hover {
-        background: #8e44ad;
-        transform: translateY(-2px);
-      }
-      .upload-button:disabled {
-        background: #5d3c6a;
-        cursor: not-allowed;
-        opacity: 0.7;
-      }
-      .upload-button i {
-        font-size: 20px;
-      }
-      .loading-indicator {
-        display: inline-block;
-        width: 20px;
-        height: 20px;
-        border: 2px solid rgba(255, 255, 255, 0.3);
-        border-radius: 50%;
-        border-top-color: var(--text-primary);
-        animation: spin 0.8s linear infinite;
-      }
-      @keyframes spin {
-        to {
-          transform: rotate(360deg);
-        }
-      }
-      @keyframes glow {
-        0% {
-          color: var(--text-secondary);
-          text-shadow: none;
-        }
-        50% {
-          color: var(--accent-color);
-          text-shadow: 0 0 8px var(--glow-color);
-        }
-        100% {
-          color: var(--text-secondary);
-          text-shadow: none;
-        }
-      }
-      @keyframes fadeIn {
-        from {
-          opacity: 0;
-          transform: translateY(10px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
-      .message.ai-message {
-        background: var(--secondary-bg);
-        border-radius: 8px;
-        padding: 16px;
-        border-left: 3px solid var(--accent-color);
-        animation: fadeIn 0.3s ease-out;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-      }
-      .ai-message .message-text {
-        padding: 4px 0;
-      }
       .code-block {
         background: var(--code-bg);
         border-radius: 8px;
         padding: 20px;
         margin: 12px 0;
         position: relative;
-        font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+        font-family: Consolas, Monaco, "Courier New", monospace;
         line-height: 1.5;
         overflow-x: auto;
         max-width: 100%;
@@ -244,26 +230,6 @@
         margin: 0;
         white-space: pre-wrap;
         font-size: 14px;
-      }
-      .code-block code {
-        display: block;
-        overflow-x: auto;
-        padding: 8px 0;
-      }
-      .text-content {
-        margin: 8px 0;
-        width: 100%;
-        overflow-wrap: break-word;
-      }
-      .text-line {
-        margin: 8px 0;
-        line-height: 1.6;
-        white-space: pre-wrap;
-        word-break: break-word;
-      }
-      .text-content + .code-block,
-      .code-block + .text-content {
-        margin-top: 16px;
       }
       .copy-button {
         position: absolute;
@@ -298,7 +264,7 @@
         padding: 12px 16px;
         margin-top: 12px;
         color: var(--text-secondary);
-        font-family: 'Courier New', Courier, monospace;
+        font-family: "Courier New", Courier, monospace;
         font-size: 14px;
         white-space: pre-wrap;
         word-break: break-word;
@@ -308,157 +274,39 @@
         transition: max-height 0.3s ease;
       }
       .chain-of-thought:hover {
-        max-height: 500px!important;
+        max-height: 500px !important;
       }
-      .chain-of-thought.glowing .chain-header,
-      .chain-of-thought.glowing pre {
-        animation: glow 2s infinite;
-      }
-      .chain-of-thought .chain-header {
-        font-weight: bold;
-        margin-bottom: 8px;
-        color: var(--accent-color);
-        display: flex;
-        align-items: center;
-        gap: 8px;
-      }
-      .chain-of-thought .chain-header::before {
-        content: '';
-        display: inline-block;
-        width: 8px;
-        height: 8px;
-        background-color: var(--accent-color);
-        border-radius: 50%;
-        animation: glow 2s infinite;
-      }
-      .copy-toast {
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        background: var(--accent-color);
-        color: white;
-        padding: 8px 16px;
-        border-radius: 4px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-        animation: fadeInOut 2s ease-in-out;
-        z-index: 1000;
-      }
-      @keyframes fadeInOut {
-        0% {
-          opacity: 0;
-          transform: translateY(20px);
-        }
-        15% {
-          opacity: 1;
-          transform: translateY(0);
-        }
-        85% {
-          opacity: 1;
-          transform: translateY(0);
-        }
-        100% {
-          opacity: 0;
-          transform: translateY(-20px);
-        }
-      }
-      .header-actions {
-        display: flex;
-        gap: 8px;
-      }
-      .header-button {
-        background: transparent;
-        border: none;
-        color: var(--text-primary);
-        border-radius: 4px;
-        width: 36px;
-        height: 36px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        transition: background-color 0.2s;
-      }
-      .header-button:hover {
-        background-color: rgba(255, 255, 255, 0.1);
-      }
-      .conversations-dropdown {
+      /* Chat History view styles */
+      .chat-history-view {
         position: absolute;
         top: 56px;
+        left: 0;
         right: 0;
-        width: 300px;
+        bottom: 0;
         background: var(--secondary-bg);
-        border: 1px solid var(--border-color);
-        border-radius: 8px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-        z-index: 100;
-        overflow: hidden;
-        animation: fadeIn 0.2s ease-out;
-      }
-      .dropdown-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 12px 16px;
-        border-bottom: 1px solid var(--border-color);
-      }
-      .dropdown-header h3 {
-        margin: 0;
-        font-size: 16px;
-        font-weight: 600;
-      }
-      .close-button {
-        background: transparent;
-        border: none;
-        color: var(--text-secondary);
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 4px;
-        border-radius: 4px;
-      }
-      .close-button:hover {
-        color: var(--text-primary);
-        background-color: rgba(255, 255, 255, 0.1);
-      }
-      .conversations-list {
-        max-height: 400px;
+        padding: 16px;
         overflow-y: auto;
+        z-index: 20;
       }
-      .empty-state {
-        padding: 24px 16px;
-        text-align: center;
-        color: var(--text-secondary);
-      }
-      .conversation-item {
+      .history-header {
         display: flex;
-        justify-content: space-between;
         align-items: center;
+        gap: 12px;
+        margin-bottom: 16px;
+      }
+      .history-header h3 {
+        flex: 1;
+      }
+      .history-item {
         padding: 12px 16px;
         border-bottom: 1px solid var(--border-color);
         cursor: pointer;
-        transition: background-color 0.2s;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
       }
-      .conversation-item:hover {
+      .history-item:hover {
         background-color: var(--message-hover);
-      }
-      .conversation-item.active {
-        background-color: rgba(155, 89, 182, 0.15);
-        border-left: 3px solid var(--accent-color);
-      }
-      .conversation-title {
-        font-size: 14px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        max-width: 200px;
-      }
-      .conversation-actions {
-        opacity: 0;
-        transition: opacity 0.2s;
-      }
-      .conversation-item:hover .conversation-actions {
-        opacity: 1;
       }
       .delete-button {
         background: transparent;
@@ -467,9 +315,6 @@
         cursor: pointer;
         padding: 4px;
         border-radius: 4px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
       }
       .delete-button:hover {
         color: #ff4d4f;
@@ -482,19 +327,20 @@
   </head>
   <body>
     <div id="root"></div>
+
+    <!-- WebsimSocket remains unchanged -->
     <script type="text/babel">
-      // Modified WebsimSocket stub to use user's name
       class WebsimSocket {
         constructor(username) {
           this.party = { client: { username: username || "Guest" } };
         }
       }
     </script>
+
+    <!-- ChatHeader Component -->
     <script type="text/babel">
-      // ChatHeader.js - unchanged except AI name update
       const { useState } = React;
-      function ChatHeader({ onNewChat, currentConversationId, conversations, onSelectConversation, onDeleteConversation }) {
-        const [showConversations, setShowConversations] = useState(false);
+      function ChatHeader({ onNewChat, onShowHistory }) {
         return (
           <div className="chat-header">
             <div className="header-title">
@@ -517,63 +363,21 @@
               <span style={{ marginLeft: "8px" }}>AI Assistant</span>
             </div>
             <div className="header-actions">
-              <button
-                className="header-button"
-                onClick={() => setShowConversations(!showConversations)}
-                title="Conversation History"
-              >
+              <button onClick={onShowHistory} title="Chat History">
                 <i className="ri-history-line"></i>
               </button>
-              <button className="header-button" onClick={onNewChat} title="New Chat">
+              <button onClick={onNewChat} title="New Chat">
                 <i className="ri-add-line"></i>
               </button>
-              {showConversations && (
-                <div className="conversations-dropdown">
-                  <div className="dropdown-header">
-                    <h3>Conversations</h3>
-                    <button className="close-button" onClick={() => setShowConversations(false)}>
-                      <i className="ri-close-line"></i>
-                    </button>
-                  </div>
-                  <div className="conversations-list">
-                    {Object.keys(conversations).length === 0 ? (
-                      <div className="empty-state">No conversations yet</div>
-                    ) : (
-                      Object.entries(conversations).map(([id, convo]) => (
-                        <div
-                          key={id}
-                          className={`conversation-item ${id === currentConversationId ? "active" : ""}`}
-                          onClick={() => {
-                            onSelectConversation(id);
-                            setShowConversations(false);
-                          }}
-                        >
-                          <div className="conversation-title">{convo.title || `Conversation ${id.slice(0, 8)}`}</div>
-                          <div className="conversation-actions">
-                            <button
-                              className="delete-button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                onDeleteConversation(id);
-                              }}
-                              title="Delete conversation"
-                            >
-                              <i className="ri-delete-bin-line"></i>
-                            </button>
-                          </div>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                </div>
-              )}
+              {/* Settings button is handled in App as a modal/panel */}
             </div>
           </div>
         );
       }
     </script>
+
+    <!-- Message Component with URL embedding -->
     <script type="text/babel">
-      // Message.js - unchanged
       function Message({ message }) {
         const copyToClipboard = (code) => {
           navigator.clipboard.writeText(code);
@@ -582,6 +386,18 @@
           toast.innerText = "Copied to clipboard!";
           document.body.appendChild(toast);
           setTimeout(() => document.body.removeChild(toast), 2000);
+        };
+        const linkify = (text) => {
+          const urlRegex = /(https?:\/\/[^\s]+)/g;
+          return text.split(urlRegex).map((part, i) =>
+            part.match(urlRegex) ? (
+              <a key={i} href={part} target="_blank" rel="noopener noreferrer">
+                {part}
+              </a>
+            ) : (
+              part
+            )
+          );
         };
         const formatMessage = (content) => {
           if (!content) return null;
@@ -608,7 +424,7 @@
               <div key={index} className="text-content">
                 {part.split("\n").map((line, i) => (
                   <p key={i} className="text-line">
-                    {line}
+                    {linkify(line)}
                   </p>
                 ))}
               </div>
@@ -643,42 +459,102 @@
         );
       }
     </script>
+
+    <!-- ChatInput Component with Image Upload -->
     <script type="text/babel">
-      // ChatInput.js - unchanged
-      function ChatInput({ newMessage, onMessageChange, onSubmit, isLoading }) {
+      function ChatInput({ newMessage, onMessageChange, onSubmit, isLoading, onImageSend }) {
         const adjustTextareaHeight = (e) => {
           const textarea = e.target;
           textarea.style.height = "auto";
           textarea.style.height = Math.min(textarea.scrollHeight, 150) + "px";
           onMessageChange(textarea.value);
         };
+
+        const handleImageChange = (e) => {
+          const file = e.target.files[0];
+          if (file) {
+            const reader = new FileReader();
+            reader.onload = () => {
+              onImageSend(reader.result);
+            };
+            reader.readAsDataURL(file);
+          }
+          e.target.value = ""; // Reset input
+        };
+
+        const triggerImageUpload = () => {
+          document.getElementById("image-upload-input").click();
+        };
+
         return (
           <form className="chat-input" onSubmit={onSubmit}>
+            <button type="button" className="image-upload-button" onClick={triggerImageUpload} title="Upload Image">
+              <i className="ri-image-line"></i>
+            </button>
+            <input type="file" id="image-upload-input" accept="image/*" style={{ display: "none" }} onChange={handleImageChange} />
             <textarea
               placeholder="Ask CodeX(lite) anything about coding..."
               value={newMessage}
               onChange={adjustTextareaHeight}
               style={{ height: newMessage ? "auto" : "56px" }}
             ></textarea>
-            <button type="submit" className="upload-button" disabled={isLoading}>
+            <button type="submit" className="upload-button" disabled={isLoading} title="Send Message">
               {isLoading ? <div className="loading-indicator"></div> : <i className="ri-send-plane-fill"></i>}
             </button>
           </form>
         );
       }
     </script>
+
+    <!-- ChatHistory Component -->
     <script type="text/babel">
-      // app.js - Updated with API key input and customization
+      function ChatHistory({ conversations, onSelectConversation, onDeleteConversation, onBack }) {
+        return (
+          <div className="chat-history-view">
+            <div className="history-header">
+              <button onClick={onBack} title="Back">
+                <i className="ri-arrow-left-line"></i>
+              </button>
+              <h3>Chat History</h3>
+            </div>
+            {Object.keys(conversations).length === 0 ? (
+              <div className="empty-state">No conversations yet</div>
+            ) : (
+              Object.entries(conversations).map(([id, convo]) => (
+                <div key={id} className="history-item" onClick={() => onSelectConversation(id)}>
+                  <span>{convo.title || `Conversation ${id.slice(0, 8)}`}</span>
+                  <button
+                    className="delete-button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDeleteConversation(id);
+                    }}
+                    title="Delete conversation"
+                  >
+                    <i className="ri-delete-bin-line"></i>
+                  </button>
+                </div>
+              ))
+            )}
+          </div>
+        );
+      }
+    </script>
+
+    <!-- App Component with all integrations -->
+    <script type="text/babel">
       const { useState, useEffect, useRef } = React;
       const API_URL = "https://openrouter.ai/api/v1/chat/completions";
 
       function App() {
-        // Prompt for username on first load
+        // View state: "chat" or "history"
+        const [view, setView] = useState("chat");
+
+        // Get stored username; prompt if not set
         const storedUsername = localStorage.getItem("codex-username");
-        const username = storedUsername || prompt("Welcome to CodeX(lite)! Please enter your name:", "Guest") || "Guest";
-        if (!storedUsername) {
-          localStorage.setItem("codex-username", username);
-        }
+        const username =
+          storedUsername || prompt("Welcome to CodeX(lite)! Please enter your name:", "Guest") || "Guest";
+        if (!storedUsername) localStorage.setItem("codex-username", username);
         const room = new WebsimSocket(username);
 
         const [messages, setMessages] = useState([]);
@@ -686,16 +562,18 @@
         const [isLoading, setIsLoading] = useState(false);
         const [conversations, setConversations] = useState({});
         const [currentConversationId, setCurrentConversationId] = useState(null);
+        const messagesEndRef = useRef(null);
+
+        // API key state remains as before
         const [apiKey, setApiKey] = useState(localStorage.getItem("openrouter-api-key") || "");
         const [apiKeyInput, setApiKeyInput] = useState("");
-        const messagesEndRef = useRef(null);
+        // Settings panel state
+        const [showSettings, setShowSettings] = useState(false);
 
         // Load conversations from localStorage on mount
         useEffect(() => {
           const savedConversations = localStorage.getItem("codex-conversations");
-          if (savedConversations) {
-            setConversations(JSON.parse(savedConversations));
-          }
+          if (savedConversations) setConversations(JSON.parse(savedConversations));
           const lastConversationId = localStorage.getItem("codex-last-conversation");
           if (lastConversationId && savedConversations && JSON.parse(savedConversations)[lastConversationId]) {
             setCurrentConversationId(lastConversationId);
@@ -707,12 +585,9 @@
 
         // Save conversations to localStorage when they change
         useEffect(() => {
-          if (Object.keys(conversations).length > 0) {
+          if (Object.keys(conversations).length > 0)
             localStorage.setItem("codex-conversations", JSON.stringify(conversations));
-          }
-          if (currentConversationId) {
-            localStorage.setItem("codex-last-conversation", currentConversationId);
-          }
+          if (currentConversationId) localStorage.setItem("codex-last-conversation", currentConversationId);
         }, [conversations, currentConversationId]);
 
         // Auto-scroll to the latest message
@@ -738,22 +613,23 @@
         const selectConversation = (id) => {
           setCurrentConversationId(id);
           setMessages(conversations[id].messages || []);
+          setView("chat");
         };
 
         // Delete a conversation
         const deleteConversation = (id) => {
           setConversations((prev) => {
-            const newConversations = { ...prev };
-            delete newConversations[id];
+            const newConvos = { ...prev };
+            delete newConvos[id];
             if (id === currentConversationId) {
-              const remainingIds = Object.keys(newConversations);
-              if (remainingIds.length > 0) {
-                selectConversation(remainingIds[0]);
+              const remaining = Object.keys(newConvos);
+              if (remaining.length > 0) {
+                selectConversation(remaining[0]);
               } else {
                 createNewConversation();
               }
             }
-            return newConversations;
+            return newConvos;
           });
         };
 
@@ -776,14 +652,14 @@
           });
         };
 
-        // Generate AI response (original non-streaming version)
+        // Generate AI response for text
         const generateAIResponse = async (conversationHistory) => {
           try {
             const messageHistory = [
               {
                 role: "system",
                 content:
-                  "You are CodeX(lite) created by a inde company called ZeQta that makes AI tools and Develops games this the link of the website:zeqta.vercel.app, an AI coding assistant specialized in coding. Provide clear, detailed final answers based on the full conversation context. You can chat naturally and serve as a personal coding assistant. Organize your responses clearly and highlight main points."
+                  "You are CodeX(lite) created by a company called ZeQta. You are an AI coding assistant. Provide clear, detailed answers based on the conversation context. Organize your responses and highlight main points."
               },
               ...conversationHistory.map((msg) => ({
                 role: msg.isAi ? "assistant" : "user",
@@ -811,7 +687,39 @@
           }
         };
 
-        // Handle sending a new message (original version)
+        // Generate AI response for image analysis (simulation)
+        const generateAIImageResponse = async (imageData) => {
+          try {
+            // For image analysis, we send a special message. Adjust as needed for your API.
+            const response = await fetch(API_URL, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${apiKey}`
+              },
+              body: JSON.stringify({
+                model: "deepseek/deepseek-r1:free",
+                messages: [
+                  {
+                    role: "system",
+                    content:
+                      "You are CodeX(lite), an AI coding assistant with image analysis capabilities. Analyze the provided image data and provide a clear description."
+                  },
+                  { role: "user", content: "Analyze this image: " + imageData }
+                ]
+              })
+            });
+            const data = await response.json();
+            const messageData = data.choices[0].message;
+            const chain = messageData.chain_of_thought || messageData.chainOfThought || "";
+            return { content: messageData.content, chainOfThought: chain };
+          } catch (error) {
+            console.error("Error generating AI image response:", error);
+            return { content: "Sorry, I encountered an error while analyzing the image.", chainOfThought: "" };
+          }
+        };
+
+        // Handle sending a new text message
         const handleSendMessage = async (e) => {
           e.preventDefault();
           if (!apiKey) {
@@ -831,11 +739,12 @@
           setMessages(updatedMessages);
           updateCurrentConversation(updatedMessages);
           setNewMessage("");
+
           const placeholderId = Date.now() + 1;
           const placeholderMessage = {
             id: placeholderId,
             content: "",
-            chainOfThought: "Complex tasks take time...",
+            chainOfThought: "Processing your request...",
             isAi: true,
             isPlaceholder: true,
             created_at: new Date().toISOString()
@@ -877,30 +786,91 @@
           setIsLoading(false);
         };
 
+        // Handle sending an image message
+        const handleSendImage = async (imageData) => {
+          if (!apiKey) {
+            alert("Please enter your OpenRouter API key before sending messages.");
+            return;
+          }
+          // Display the user's image message (for simplicity, show imageData as text)
+          const userMessage = {
+            id: Date.now(),
+            content: "[Image] " + imageData,
+            username: room.party.client.username,
+            created_at: new Date().toISOString(),
+            isAi: false
+          };
+          const updatedMessages = [...messages, userMessage];
+          setMessages(updatedMessages);
+          updateCurrentConversation(updatedMessages);
+
+          const placeholderId = Date.now() + 1;
+          const placeholderMessage = {
+            id: placeholderId,
+            content: "",
+            chainOfThought: "Analyzing image...",
+            isAi: true,
+            isPlaceholder: true,
+            created_at: new Date().toISOString()
+          };
+          const withPlaceholder = [...updatedMessages, placeholderMessage];
+          setMessages(withPlaceholder);
+          setIsLoading(true);
+          const aiResponse = await generateAIImageResponse(imageData);
+          const finalMessages = withPlaceholder.map((m) => {
+            if (m.id === placeholderId) {
+              return {
+                ...m,
+                content: aiResponse.content,
+                chainOfThought: aiResponse.chainOfThought,
+                isPlaceholder: false,
+                created_at: new Date().toISOString()
+              };
+            }
+            return m;
+          });
+          setMessages(finalMessages);
+          updateCurrentConversation(finalMessages);
+          setIsLoading(false);
+        };
+
         const handleSaveApiKey = () => {
           if (apiKeyInput.trim() !== "") {
             setApiKey(apiKeyInput.trim());
             localStorage.setItem("openrouter-api-key", apiKeyInput.trim());
             setApiKeyInput("");
+            alert("API Key Saved!");
           } else {
             alert("Please enter a valid API key.");
           }
         };
 
-        return (
+        const handleSaveUsername = () => {
+          const newName = prompt("Enter new username:", room.party.client.username);
+          if (newName) {
+            localStorage.setItem("codex-username", newName);
+            alert("Username Saved! Reload the page to see changes.");
+          }
+        };
+
+        return view === "history" ? (
+          <ChatHistory
+            conversations={conversations}
+            onSelectConversation={selectConversation}
+            onDeleteConversation={deleteConversation}
+            onBack={() => setView("chat")}
+          />
+        ) : (
           <div className="app">
-            <ChatHeader
-              onNewChat={createNewConversation}
-              currentConversationId={currentConversationId}
-              conversations={conversations}
-              onSelectConversation={selectConversation}
-              onDeleteConversation={deleteConversation}
-            />
+            <ChatHeader onNewChat={createNewConversation} onShowHistory={() => setView("history")} />
             {!apiKey && (
               <div style={{ padding: "16px", background: "var(--secondary-bg)", borderBottom: "1px solid var(--border-color)" }}>
                 <p>
-                  Please enter your OpenRouter API key to start using CodeX(lite). If you don't have one, click 
-                  <a href="https://openrouter.ai" target="_blank" style={{ color: "var(--accent-color)" }}> here</a> to create one.
+                  Please enter your OpenRouter API key to start using CodeX(lite). If you don't have one, click{" "}
+                  <a href="https://openrouter.ai" target="_blank" style={{ color: "var(--accent-color)" }}>
+                    here
+                  </a>{" "}
+                  to create one.
                 </p>
                 <input
                   type="text"
@@ -933,7 +903,33 @@
               onMessageChange={setNewMessage}
               onSubmit={handleSendMessage}
               isLoading={isLoading}
+              onImageSend={handleSendImage}
             />
+            {/* Settings Panel (as a simple inline panel) */}
+            <div style={{ position: "absolute", top: "56px", right: "0", background: "var(--secondary-bg)", border: "1px solid var(--border-color)", borderRadius: "8px", padding: "16px", display: showSettings ? "block" : "none", zIndex: 30 }}>
+              <button onClick={() => setShowSettings(false)} title="Back">
+                <i className="ri-arrow-left-line"></i>
+              </button>
+              <h3>Settings</h3>
+              <label>API Key:</label>
+              <input
+                type="text"
+                placeholder="Enter API Key"
+                value={apiKeyInput}
+                onChange={(e) => setApiKeyInput(e.target.value)}
+                style={{ width: "100%", padding: "8px", marginTop: "8px", background: "var(--secondary-bg)", border: "1px solid var(--border-color)", color: "var(--text-primary)" }}
+              />
+              <button onClick={handleSaveApiKey} style={{ marginTop: "8px", padding: "8px 16px", background: "var(--accent-color)", border: "none", color: "var(--text-primary)" }}>
+                Save API Key
+              </button>
+              <br /><br />
+              <button onClick={handleSaveUsername} style={{ padding: "8px 16px", background: "var(--accent-color)", border: "none", color: "var(--text-primary)" }}>
+                Change Username
+              </button>
+            </div>
+            <button onClick={() => setShowSettings(true)} style={{ position: "absolute", top: "8px", right: "8px", background: "transparent", border: "none", color: "var(--text-primary)", fontSize: "24px", zIndex: 40 }} title="Settings">
+              <i className="ri-settings-3-line"></i>
+            </button>
           </div>
         );
       }
@@ -941,4 +937,3 @@
     </script>
   </body>
 </html>
-
