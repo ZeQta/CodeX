@@ -4,12 +4,12 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>CodeX(lite) AI Assistant</title>
-    <link
-      href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css"
-      rel="stylesheet"
-    />
+    <!-- Remix Icon for buttons -->
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet" />
+    <!-- Highlight.js for colored code blocks -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/atom-one-dark.min.css" />
     <style>
-      /* Keep original styling to preserve the UI */
+      /* Preserve original UI styling with improvements for stability and accessibility */
       * {
         margin: 0;
         padding: 0;
@@ -34,22 +34,20 @@
         height: 100vh;
         overflow: hidden;
       }
-      .app {
-        height: 100vh;
-        display: flex;
-        flex-direction: column;
-        position: relative;
-      }
+      /* Fixed header so buttons are always accessible */
       .chat-header {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
         height: 56px;
         padding: 0 24px;
         display: flex;
         align-items: center;
-        border-bottom: 1px solid var(--border-color);
-        background: var(--secondary-bg);
         justify-content: space-between;
-        position: relative;
-        z-index: 10;
+        background: var(--secondary-bg);
+        border-bottom: 1px solid var(--border-color);
+        z-index: 1000;
       }
       .header-title {
         display: flex;
@@ -75,6 +73,10 @@
         text-shadow: 0 0 10px var(--glow-color);
         letter-spacing: 0.8px;
       }
+      .header-actions {
+        display: flex;
+        gap: 8px;
+      }
       .header-actions button {
         background: transparent;
         border: none;
@@ -87,10 +89,17 @@
         justify-content: center;
         cursor: pointer;
         transition: background-color 0.2s;
-        margin-left: 8px;
       }
       .header-actions button:hover {
         background-color: rgba(255, 255, 255, 0.1);
+      }
+      /* Main app container: add top margin to account for fixed header */
+      .app {
+        margin-top: 56px;
+        height: calc(100vh - 56px);
+        display: flex;
+        flex-direction: column;
+        position: relative;
       }
       .chat-messages {
         flex: 1;
@@ -99,9 +108,6 @@
         display: flex;
         flex-direction: column;
         gap: 24px;
-        min-height: 0;
-        max-height: calc(100vh - 120px);
-        scroll-behavior: smooth;
       }
       .chat-input {
         padding: 16px 24px 24px;
@@ -109,7 +115,6 @@
         gap: 12px;
         background: var(--primary-bg);
         border-top: 1px solid var(--border-color);
-        align-items: center;
       }
       .chat-input textarea {
         flex: 1;
@@ -132,7 +137,7 @@
       .chat-input textarea::placeholder {
         color: var(--text-secondary);
       }
-      .upload-button, .image-upload-button {
+      .upload-button {
         background: var(--accent-color);
         border: none;
         border-radius: 8px;
@@ -145,16 +150,16 @@
         cursor: pointer;
         transition: all 0.2s ease;
       }
-      .upload-button:hover, .image-upload-button:hover {
+      .upload-button:hover {
         background: #8e44ad;
         transform: translateY(-2px);
       }
-      .upload-button:disabled, .image-upload-button:disabled {
+      .upload-button:disabled {
         background: #5d3c6a;
         cursor: not-allowed;
         opacity: 0.7;
       }
-      .upload-button i, .image-upload-button i {
+      .upload-button i {
         font-size: 20px;
       }
       .loading-indicator {
@@ -171,7 +176,7 @@
           transform: rotate(360deg);
         }
       }
-      /* Message styles (unchanged) */
+      /* Message styles */
       .message {
         display: flex;
         gap: 16px;
@@ -212,8 +217,6 @@
         line-height: 1.6;
         font-size: 15px;
         letter-spacing: 0.2px;
-        width: 100%;
-        overflow-wrap: break-word;
       }
       .code-block {
         background: var(--code-bg);
@@ -224,7 +227,6 @@
         font-family: Consolas, Monaco, "Courier New", monospace;
         line-height: 1.5;
         overflow-x: auto;
-        max-width: 100%;
       }
       .code-block pre {
         margin: 0;
@@ -276,9 +278,9 @@
       .chain-of-thought:hover {
         max-height: 500px !important;
       }
-      /* Chat History view styles */
+      /* Chat History view (full-screen overlay) */
       .chat-history-view {
-        position: absolute;
+        position: fixed;
         top: 56px;
         left: 0;
         right: 0;
@@ -286,7 +288,7 @@
         background: var(--secondary-bg);
         padding: 16px;
         overflow-y: auto;
-        z-index: 20;
+        z-index: 1100;
       }
       .history-header {
         display: flex;
@@ -320,15 +322,63 @@
         color: #ff4d4f;
         background-color: rgba(255, 77, 79, 0.1);
       }
+      /* Settings Panel (side panel on right) */
+      .settings-panel {
+        position: fixed;
+        top: 56px;
+        right: 0;
+        width: 300px;
+        height: calc(100vh - 56px);
+        background: var(--secondary-bg);
+        border-left: 1px solid var(--border-color);
+        padding: 16px;
+        z-index: 1100;
+        overflow-y: auto;
+      }
+      .settings-panel h3 {
+        margin-bottom: 12px;
+      }
+      .settings-panel label {
+        display: block;
+        margin-top: 12px;
+      }
+      .settings-panel input {
+        width: 100%;
+        padding: 8px;
+        margin-top: 4px;
+        background: var(--primary-bg);
+        border: 1px solid var(--border-color);
+        color: var(--text-primary);
+        border-radius: 4px;
+      }
+      .settings-panel button {
+        margin-top: 12px;
+        padding: 8px 16px;
+        background: var(--accent-color);
+        border: none;
+        color: var(--text-primary);
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      .close-panel {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        background: transparent;
+        border: none;
+        color: var(--text-primary);
+        font-size: 24px;
+        cursor: pointer;
+      }
     </style>
     <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
   </head>
   <body>
     <div id="root"></div>
-
-    <!-- WebsimSocket remains unchanged -->
+    <!-- WebsimSocket (unchanged) -->
     <script type="text/babel">
       class WebsimSocket {
         constructor(username) {
@@ -336,11 +386,10 @@
         }
       }
     </script>
-
-    <!-- ChatHeader Component -->
+    <!-- ChatHeader Component with Settings button -->
     <script type="text/babel">
       const { useState } = React;
-      function ChatHeader({ onNewChat, onShowHistory }) {
+      function ChatHeader({ onNewChat, onShowHistory, onShowSettings }) {
         return (
           <div className="chat-header">
             <div className="header-title">
@@ -369,16 +418,25 @@
               <button onClick={onNewChat} title="New Chat">
                 <i className="ri-add-line"></i>
               </button>
-              {/* Settings button is handled in App as a modal/panel */}
+              <button onClick={onShowSettings} title="Settings">
+                <i className="ri-settings-3-line"></i>
+              </button>
             </div>
           </div>
         );
       }
     </script>
-
-    <!-- Message Component with URL embedding -->
+    <!-- Message Component with URL embedding and syntax highlighting -->
     <script type="text/babel">
+      const { useEffect } = React;
       function Message({ message }) {
+        useEffect(() => {
+          if (window.hljs) {
+            document.querySelectorAll("pre code").forEach((block) => {
+              window.hljs.highlightBlock(block);
+            });
+          }
+        }, [message]);
         const copyToClipboard = (code) => {
           navigator.clipboard.writeText(code);
           const toast = document.createElement("div");
@@ -459,39 +517,17 @@
         );
       }
     </script>
-
-    <!-- ChatInput Component with Image Upload -->
+    <!-- ChatInput Component (without image analysis) -->
     <script type="text/babel">
-      function ChatInput({ newMessage, onMessageChange, onSubmit, isLoading, onImageSend }) {
+      function ChatInput({ newMessage, onMessageChange, onSubmit, isLoading }) {
         const adjustTextareaHeight = (e) => {
           const textarea = e.target;
           textarea.style.height = "auto";
           textarea.style.height = Math.min(textarea.scrollHeight, 150) + "px";
           onMessageChange(textarea.value);
         };
-
-        const handleImageChange = (e) => {
-          const file = e.target.files[0];
-          if (file) {
-            const reader = new FileReader();
-            reader.onload = () => {
-              onImageSend(reader.result);
-            };
-            reader.readAsDataURL(file);
-          }
-          e.target.value = ""; // Reset input
-        };
-
-        const triggerImageUpload = () => {
-          document.getElementById("image-upload-input").click();
-        };
-
         return (
           <form className="chat-input" onSubmit={onSubmit}>
-            <button type="button" className="image-upload-button" onClick={triggerImageUpload} title="Upload Image">
-              <i className="ri-image-line"></i>
-            </button>
-            <input type="file" id="image-upload-input" accept="image/*" style={{ display: "none" }} onChange={handleImageChange} />
             <textarea
               placeholder="Ask CodeX(lite) anything about coding..."
               value={newMessage}
@@ -505,7 +541,6 @@
         );
       }
     </script>
-
     <!-- ChatHistory Component -->
     <script type="text/babel">
       function ChatHistory({ conversations, onSelectConversation, onDeleteConversation, onBack }) {
@@ -540,37 +575,46 @@
         );
       }
     </script>
-
+    <!-- SettingsPanel Component showing current API key and username -->
+    <script type="text/babel">
+      function SettingsPanel({ apiKey, username, onSaveApiKey, onSaveUsername, onClose }) {
+        const [localApiKey, setLocalApiKey] = React.useState(apiKey);
+        const [localUsername, setLocalUsername] = React.useState(username);
+        return (
+          <div className="settings-panel">
+            <button className="close-panel" onClick={onClose} title="Close Settings">
+              <i className="ri-close-line"></i>
+            </button>
+            <h3>Settings</h3>
+            <label>Current API Key:</label>
+            <input type="text" value={localApiKey} onChange={(e) => setLocalApiKey(e.target.value)} placeholder="API Key" />
+            <button onClick={() => onSaveApiKey(localApiKey)}>Save API Key</button>
+            <label>Current Username:</label>
+            <input type="text" value={localUsername} onChange={(e) => setLocalUsername(e.target.value)} placeholder="Username" />
+            <button onClick={() => onSaveUsername(localUsername)}>Save Username</button>
+          </div>
+        );
+      }
+    </script>
     <!-- App Component with all integrations -->
     <script type="text/babel">
       const { useState, useEffect, useRef } = React;
       const API_URL = "https://openrouter.ai/api/v1/chat/completions";
-
       function App() {
-        // View state: "chat" or "history"
-        const [view, setView] = useState("chat");
-
-        // Get stored username; prompt if not set
+        const [view, setView] = useState("chat"); // "chat" or "history"
         const storedUsername = localStorage.getItem("codex-username");
-        const username =
-          storedUsername || prompt("Welcome to CodeX(lite)! Please enter your name:", "Guest") || "Guest";
-        if (!storedUsername) localStorage.setItem("codex-username", username);
+        const initialUsername = storedUsername || prompt("Welcome to CodeX(lite)! Please enter your name:", "Guest") || "Guest";
+        if (!storedUsername) localStorage.setItem("codex-username", initialUsername);
+        const [username, setUsername] = useState(initialUsername);
         const room = new WebsimSocket(username);
-
         const [messages, setMessages] = useState([]);
         const [newMessage, setNewMessage] = useState("");
         const [isLoading, setIsLoading] = useState(false);
         const [conversations, setConversations] = useState({});
         const [currentConversationId, setCurrentConversationId] = useState(null);
-        const messagesEndRef = useRef(null);
-
-        // API key state remains as before
         const [apiKey, setApiKey] = useState(localStorage.getItem("openrouter-api-key") || "");
-        const [apiKeyInput, setApiKeyInput] = useState("");
-        // Settings panel state
         const [showSettings, setShowSettings] = useState(false);
-
-        // Load conversations from localStorage on mount
+        const messagesEndRef = useRef(null);
         useEffect(() => {
           const savedConversations = localStorage.getItem("codex-conversations");
           if (savedConversations) setConversations(JSON.parse(savedConversations));
@@ -582,20 +626,17 @@
             createNewConversation();
           }
         }, []);
-
-        // Save conversations to localStorage when they change
         useEffect(() => {
           if (Object.keys(conversations).length > 0)
             localStorage.setItem("codex-conversations", JSON.stringify(conversations));
           if (currentConversationId) localStorage.setItem("codex-last-conversation", currentConversationId);
         }, [conversations, currentConversationId]);
-
-        // Auto-scroll to the latest message
         useEffect(() => {
           messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+          if (window.hljs) {
+            window.hljs.highlightAll();
+          }
         }, [messages]);
-
-        // Create a new conversation
         const createNewConversation = () => {
           const newId = Date.now().toString();
           setConversations((prev) => ({
@@ -608,15 +649,11 @@
           setCurrentConversationId(newId);
           setMessages([]);
         };
-
-        // Switch to an existing conversation
         const selectConversation = (id) => {
           setCurrentConversationId(id);
           setMessages(conversations[id].messages || []);
           setView("chat");
         };
-
-        // Delete a conversation
         const deleteConversation = (id) => {
           setConversations((prev) => {
             const newConvos = { ...prev };
@@ -632,8 +669,6 @@
             return newConvos;
           });
         };
-
-        // Update the current conversation with new messages
         const updateCurrentConversation = (newMessages) => {
           setConversations((prev) => {
             const userMessages = newMessages.filter((m) => !m.isAi);
@@ -651,15 +686,13 @@
             };
           });
         };
-
-        // Generate AI response for text
         const generateAIResponse = async (conversationHistory) => {
           try {
             const messageHistory = [
               {
                 role: "system",
                 content:
-                  "You are CodeX(lite) created by a company called ZeQta. You are an AI coding assistant. Provide clear, detailed answers based on the conversation context. Organize your responses and highlight main points."
+                  "You are CodeX(lite) created by ZeQta. You are an AI coding assistant. Provide clear, detailed answers based on the conversation context. Organize your responses and highlight main points."
               },
               ...conversationHistory.map((msg) => ({
                 role: msg.isAi ? "assistant" : "user",
@@ -686,40 +719,6 @@
             return { content: "Sorry, I encountered an error while processing your request.", chainOfThought: "" };
           }
         };
-
-        // Generate AI response for image analysis (simulation)
-        const generateAIImageResponse = async (imageData) => {
-          try {
-            // For image analysis, we send a special message. Adjust as needed for your API.
-            const response = await fetch(API_URL, {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${apiKey}`
-              },
-              body: JSON.stringify({
-                model: "deepseek/deepseek-r1:free",
-                messages: [
-                  {
-                    role: "system",
-                    content:
-                      "You are CodeX(lite), an AI coding assistant with image analysis capabilities. Analyze the provided image data and provide a clear description."
-                  },
-                  { role: "user", content: "Analyze this image: " + imageData }
-                ]
-              })
-            });
-            const data = await response.json();
-            const messageData = data.choices[0].message;
-            const chain = messageData.chain_of_thought || messageData.chainOfThought || "";
-            return { content: messageData.content, chainOfThought: chain };
-          } catch (error) {
-            console.error("Error generating AI image response:", error);
-            return { content: "Sorry, I encountered an error while analyzing the image.", chainOfThought: "" };
-          }
-        };
-
-        // Handle sending a new text message
         const handleSendMessage = async (e) => {
           e.preventDefault();
           if (!apiKey) {
@@ -739,7 +738,6 @@
           setMessages(updatedMessages);
           updateCurrentConversation(updatedMessages);
           setNewMessage("");
-
           const placeholderId = Date.now() + 1;
           const placeholderMessage = {
             id: placeholderId,
@@ -785,74 +783,24 @@
           updateCurrentConversation(finalMessages);
           setIsLoading(false);
         };
-
-        // Handle sending an image message
-        const handleSendImage = async (imageData) => {
-          if (!apiKey) {
-            alert("Please enter your OpenRouter API key before sending messages.");
-            return;
-          }
-          // Display the user's image message (for simplicity, show imageData as text)
-          const userMessage = {
-            id: Date.now(),
-            content: "[Image] " + imageData,
-            username: room.party.client.username,
-            created_at: new Date().toISOString(),
-            isAi: false
-          };
-          const updatedMessages = [...messages, userMessage];
-          setMessages(updatedMessages);
-          updateCurrentConversation(updatedMessages);
-
-          const placeholderId = Date.now() + 1;
-          const placeholderMessage = {
-            id: placeholderId,
-            content: "",
-            chainOfThought: "Analyzing image...",
-            isAi: true,
-            isPlaceholder: true,
-            created_at: new Date().toISOString()
-          };
-          const withPlaceholder = [...updatedMessages, placeholderMessage];
-          setMessages(withPlaceholder);
-          setIsLoading(true);
-          const aiResponse = await generateAIImageResponse(imageData);
-          const finalMessages = withPlaceholder.map((m) => {
-            if (m.id === placeholderId) {
-              return {
-                ...m,
-                content: aiResponse.content,
-                chainOfThought: aiResponse.chainOfThought,
-                isPlaceholder: false,
-                created_at: new Date().toISOString()
-              };
-            }
-            return m;
-          });
-          setMessages(finalMessages);
-          updateCurrentConversation(finalMessages);
-          setIsLoading(false);
-        };
-
-        const handleSaveApiKey = () => {
-          if (apiKeyInput.trim() !== "") {
-            setApiKey(apiKeyInput.trim());
-            localStorage.setItem("openrouter-api-key", apiKeyInput.trim());
-            setApiKeyInput("");
+        const handleSaveApiKey = (newKey) => {
+          if (newKey.trim() !== "") {
+            setApiKey(newKey.trim());
+            localStorage.setItem("openrouter-api-key", newKey.trim());
             alert("API Key Saved!");
           } else {
             alert("Please enter a valid API key.");
           }
         };
-
-        const handleSaveUsername = () => {
-          const newName = prompt("Enter new username:", room.party.client.username);
-          if (newName) {
-            localStorage.setItem("codex-username", newName);
+        const handleSaveUsername = (newName) => {
+          if (newName.trim() !== "") {
+            setUsername(newName.trim());
+            localStorage.setItem("codex-username", newName.trim());
             alert("Username Saved! Reload the page to see changes.");
+          } else {
+            alert("Please enter a valid username.");
           }
         };
-
         return view === "history" ? (
           <ChatHistory
             conversations={conversations}
@@ -862,7 +810,11 @@
           />
         ) : (
           <div className="app">
-            <ChatHeader onNewChat={createNewConversation} onShowHistory={() => setView("history")} />
+            <ChatHeader
+              onNewChat={createNewConversation}
+              onShowHistory={() => setView("history")}
+              onShowSettings={() => setShowSettings(true)}
+            />
             {!apiKey && (
               <div style={{ padding: "16px", background: "var(--secondary-bg)", borderBottom: "1px solid var(--border-color)" }}>
                 <p>
@@ -871,19 +823,6 @@
                     here
                   </a>{" "}
                   to create one.
-                </p>
-                <input
-                  type="text"
-                  placeholder="Paste your OpenRouter API key here"
-                  value={apiKeyInput}
-                  onChange={(e) => setApiKeyInput(e.target.value)}
-                  style={{ width: "80%", padding: "8px", borderRadius: "4px", border: "1px solid var(--border-color)", marginRight: "8px" }}
-                />
-                <button onClick={handleSaveApiKey} style={{ padding: "8px 16px", borderRadius: "4px", background: "var(--accent-color)", border: "none", color: "var(--text-primary)" }}>
-                  Save API Key
-                </button>
-                <p style={{ fontSize: "12px", marginTop: "8px", color: "var(--text-secondary)" }}>
-                  Disclaimer: We won't scam you and the AI uses DeepSeek R1 free that requires $0.000.
                 </p>
               </div>
             )}
@@ -903,33 +842,16 @@
               onMessageChange={setNewMessage}
               onSubmit={handleSendMessage}
               isLoading={isLoading}
-              onImageSend={handleSendImage}
             />
-            {/* Settings Panel (as a simple inline panel) */}
-            <div style={{ position: "absolute", top: "56px", right: "0", background: "var(--secondary-bg)", border: "1px solid var(--border-color)", borderRadius: "8px", padding: "16px", display: showSettings ? "block" : "none", zIndex: 30 }}>
-              <button onClick={() => setShowSettings(false)} title="Back">
-                <i className="ri-arrow-left-line"></i>
-              </button>
-              <h3>Settings</h3>
-              <label>API Key:</label>
-              <input
-                type="text"
-                placeholder="Enter API Key"
-                value={apiKeyInput}
-                onChange={(e) => setApiKeyInput(e.target.value)}
-                style={{ width: "100%", padding: "8px", marginTop: "8px", background: "var(--secondary-bg)", border: "1px solid var(--border-color)", color: "var(--text-primary)" }}
+            {showSettings && (
+              <SettingsPanel
+                apiKey={apiKey}
+                username={username}
+                onSaveApiKey={handleSaveApiKey}
+                onSaveUsername={handleSaveUsername}
+                onClose={() => setShowSettings(false)}
               />
-              <button onClick={handleSaveApiKey} style={{ marginTop: "8px", padding: "8px 16px", background: "var(--accent-color)", border: "none", color: "var(--text-primary)" }}>
-                Save API Key
-              </button>
-              <br /><br />
-              <button onClick={handleSaveUsername} style={{ padding: "8px 16px", background: "var(--accent-color)", border: "none", color: "var(--text-primary)" }}>
-                Change Username
-              </button>
-            </div>
-            <button onClick={() => setShowSettings(true)} style={{ position: "absolute", top: "8px", right: "8px", background: "transparent", border: "none", color: "var(--text-primary)", fontSize: "24px", zIndex: 40 }} title="Settings">
-              <i className="ri-settings-3-line"></i>
-            </button>
+            )}
           </div>
         );
       }
