@@ -4,9 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>CodeX(lite) AI Assistant</title>
-    <!-- Remix Icon for buttons -->
     <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet" />
-    <!-- Highlight.js for colored code blocks -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/atom-one-dark.min.css" />
     <style>
       /* Preserve original UI styling with improvements for stability and accessibility */
@@ -378,7 +376,6 @@
   </head>
   <body>
     <div id="root"></div>
-    <!-- WebsimSocket (unchanged) -->
     <script type="text/babel">
       class WebsimSocket {
         constructor(username) {
@@ -386,7 +383,6 @@
         }
       }
     </script>
-    <!-- ChatHeader Component with Settings button -->
     <script type="text/babel">
       const { useState } = React;
       function ChatHeader({ onNewChat, onShowHistory, onShowSettings }) {
@@ -426,7 +422,6 @@
         );
       }
     </script>
-    <!-- Message Component with URL embedding and syntax highlighting -->
     <script type="text/babel">
       const { useEffect } = React;
       function Message({ message }) {
@@ -517,7 +512,6 @@
         );
       }
     </script>
-    <!-- ChatInput Component (without image analysis) -->
     <script type="text/babel">
       function ChatInput({ newMessage, onMessageChange, onSubmit, isLoading }) {
         const adjustTextareaHeight = (e) => {
@@ -541,7 +535,6 @@
         );
       }
     </script>
-    <!-- ChatHistory Component -->
     <script type="text/babel">
       function ChatHistory({ conversations, onSelectConversation, onDeleteConversation, onBack }) {
         return (
@@ -575,7 +568,6 @@
         );
       }
     </script>
-    <!-- SettingsPanel Component showing current API key and username -->
     <script type="text/babel">
       function SettingsPanel({ apiKey, username, onSaveApiKey, onSaveUsername, onClose }) {
         const [localApiKey, setLocalApiKey] = React.useState(apiKey);
@@ -596,10 +588,9 @@
         );
       }
     </script>
-    <!-- App Component with all integrations -->
     <script type="text/babel">
       const { useState, useEffect, useRef } = React;
-      const API_URL = "https://openrouter.ai/api/v1/chat/completions";
+      const API_URL = "[https://openrouter.ai/api/v1/chat/completions](https://openrouter.ai/api/v1/chat/completions)";
       function App() {
         const [view, setView] = useState("chat"); // "chat" or "history"
         const storedUsername = localStorage.getItem("codex-username");
@@ -706,7 +697,7 @@
                 Authorization: `Bearer ${apiKey}`
               },
               body: JSON.stringify({
-                model: "qwen/qwq32b:free",
+                model: "openrouter/horizon-beta",
                 messages: messageHistory
               })
             });
@@ -819,7 +810,7 @@
               <div style={{ padding: "16px", background: "var(--secondary-bg)", borderBottom: "1px solid var(--border-color)" }}>
                 <p>
                   Please enter your OpenRouter API key to start using CodeX(lite). If you don't have one, click{" "}
-                  <a href="https://openrouter.ai" target="_blank" style={{ color: "var(--accent-color)" }}>
+                  <a href="[https://openrouter.ai](https://openrouter.ai)" target="_blank" style={{ color: "var(--accent-color)" }}>
                     here
                   </a>{" "}
                   to create one.
